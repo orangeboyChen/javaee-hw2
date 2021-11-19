@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nowcent.javaeehw2.dao.BlogDao">
+    <resultMap id="blog" type="com.nowcent.javaeehw2.entity.Blog">
+        <id column="id" property="id"/>
+        <result column="state" property="state" typeHandler="com.nowcent.javaeehw2.handler.BlogStateTypeHandler"/>
+        <collection property="articleList" column="id" ofType="com.nowcent.javaeehw2.entity.Article" select="queryArticleByBlogId"/>
+        <collection property="authorList" column="id" ofType="com.nowcent.javaeehw2.entity.Author" select="queryAuthorByBlogId"/>
+    </resultMap>
+
+    <resultMap id="blog2" type="com.nowcent.javaeehw2.entity.Blog">
+        <id property="id" column="bid"/>
+        <result property="name" column="bname"/>
+        <result column="bstate" property="state" typeHandler="com.nowcent.javaeehw2.handler.BlogStateTypeHandler"/>
+        <collection property="articleList" javaType="java.util.List" column="arid" ofType="com.nowcent.javaeehw2.entity.Article">
+            <id property="id" column="arid"/>
+            <result column="arname" property="name"/>
+            <collection property="commentList" column="arid" ofType="com.nowcent.javaeehw2.entity.Comment" select="queryCommentByArticleId"/>
+            <discriminator javaType="Integer" column="artype">
+                <case value="0" resultMap="regularPost"/>
+                <case value="1" resultMap="draftPost"/>
+            </discriminator>
+        </collection>
+        <collection property="authorList" javaType="java.util.List" column="auid" ofType="com.nowcent.javaeehw2.entity.Author">
+            <id property="id" column="auid"/>
+            <result property="name" column="auname"/>
+        </collection>
+    </resultMap>
+
+    <resultMap id="article" type="com.nowcent.javaeehw2.entity.Article">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <collection property="commentList" column="id" ofType="com.nowcent.javaeehw2.entity.Comment" select="queryCommentByArticleId"/>
+        <discriminator javaType="Integer" column="type">
+            <case value="0" resultMap="regularPost"/>
+            <case value="1" resultMap="draftPost"/>
+        </discriminator>
+
+    </resultMap>
+
+    <resultMap id="draftPost" type="com.nowcent.javaeehw2.entity.DraftPost" extends="article">
+        <result column="data" property="byteContent"/>
+    </resultMap>
+
+    <resultMap id="regularPost" type="com.nowcent.javaeehw2.entity.RegularPost" extends="article">
+        <result column="data" property="content"/>
+    </resultMap>
+
+    <resultMap id="comment" type="com.nowcent.javaeehw2.entity.Comment">
+        <id column="id" property="id"/>
+        <collection property="tagList" column="id" ofType="com.nowcent.javaeehw2.entity.Tag" select="queryTagByCommentId"/>
+    </resultMap>
+
+    <select id="queryAuthorByBlogId" resultType="com.nowcent.javaeehw2.entity.Author">
+        SELECT * FROM `author` WHERE `blog_id` = #{id}
+    </select>
+
+    <select id="queryBlogById" resultMap="blog">
+        SELECT * FROM `blog` WHERE `id` =  #{id}
+    </select>
+
+    <select id="queryBlogUsingJoinById" resultMap="blog2">
+        SELECT `blog`.`id` bid, `blog`.`name` bname, `article`.`id` arid, `blog`.`state` bstate,
+               `author`.`id` auid, `author`.`name` auname,
+               `article`.`type` artype, `article`.`name` arname, `article`.`data` ardata
+        FROM `blog` JOIN `author` JOIN `article`
+        WHERE `article`.`blog_id` = #{id} AND `author`.`blog_id` = #{id} AND `blog`.`id` = #{id}
+    </select>
+
+    <select id="queryCommentByArticleId" resultMap="comment">
+        SELECT * FROM `comment` WHERE `article_id` = #{id}
+    </select>
+
+    <select id="queryTagByCommentId" resultType="com.nowcent.javaeehw2.entity.Tag">
+        SELECT * FROM `tag` WHERE `comment_id` = #{id}
+    </select>
+
+    <select id="queryArticleByBlogId" resultMap="article">
+        SELECT * FROM `article` WHERE `blog_id` = #{id}
+    </select>
+
+
+</mapper>

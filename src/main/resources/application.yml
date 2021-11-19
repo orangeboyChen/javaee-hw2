@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username:
+    password:
+    url: 
+mybatis-plus:
+  configuration:
+    lazy-loading-enabled: true
+    aggressive-lazy-loading: true
+  type-handlers-package: com.nowcent.javaeehw2.handler
+
+logging:
+  level:
+    com.nowcent.javaeehw2.dao: debug
+
+
